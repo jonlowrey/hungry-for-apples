@@ -3,6 +3,8 @@ var fs = require('fs');
 
 
 
+
+
 // Identify every thumbnail by iterating
 const timer = ms => new Promise(res => setTimeout(res, ms))
 
@@ -15,42 +17,47 @@ const getHighResUrl = (appleId) => {
 
 async function downloadApple(appleId) {
     console.log(`Attempting to download Apple #${appleId}`);
-    axios({
-        url: getHighResUrl(appleId),
-        method: 'GET',
-        responseType: 'stream',
-    }).then(resp => {
-        console.log(`${appleId}: status code ${resp.status}`); 
-
-        //uncomment when youre ready to save
-        resp.data.pipe(fs.createWriteStream(`./bigApples/${appleId}.jpg`))
-    }).catch(error => {
+    const { data } = await axios.get(getHighResUrl(appleId),{
+        responseType: 'arraybuffer'
+      }).catch(error => {
         console.error(`Faild to download ${appleId}`);
-    });
+        failedIds.push(appleId)
+      });
+     fs.writeFileSync(`./bigApples/${appleId}.jpg`, data);
+    return () => {};
 }
+
+let noErr = true;
 
 
 async function getExistingAssets() {
-    for (let index = 1000; index < 1003; index++) {
+    for (let index = 1000; index <= 1531; index++) {
         console.log(`ids that exist: ${assetIds.toString()}`);
-        axios({
+        if(!noErr){
+            break;
+            return;
+        }
+        await axios({
             url: `https://naldc.nal.usda.gov/download/POM0000${index}/thumbnail`,
             method: 'GET',
             responseType: 'stream',
-        }).then(resp => {
+        }).then(async (resp) => {
             console.log(`${index}: ${resp.status}`); 
             assetIds.push(index);
-            downloadApple(index);
+            await downloadApple(index);
 
-            //uncomment when youre ready to save
-            resp.data.pipe(fs.createWriteStream(`./apples/${index}.jpg`))
+            fs.writeFileSync(`./apples/${index}.jpg`, resp.data);
         }).catch(error => {
+            noErr=false;
             console.log(`Missing ID! ${index}`);
             failedIds.push(index);
+            console.error(error.toString())
         });
-        fs.writeFileSync('./appleIds', assetIds.toString())
-        fs.writeFileSync('./badAppleIds', failedIds.toString())
-        await timer(3000);
+        if(index % 15 === 0){
+            fs.writeFileSync('./appleIds', assetIds.toString())
+            fs.writeFileSync('./badAppleIds', failedIds.toString())
+        }
+        await timer(1000);
         
     }
 
