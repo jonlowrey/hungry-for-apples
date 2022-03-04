@@ -1,0 +1,14 @@
+{
+  "name": "hungry-for-apples",
+  "version": "0.0.1",
+  "description": "A script to identify and download some tasty apples.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jonlowrey",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.0"
+  }
+}
