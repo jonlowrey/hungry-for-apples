@@ -31,7 +31,7 @@ let noErr = true;
 
 
 async function getExistingAssets() {
-    for (let index = 1000; index <= 1531; index++) {
+    for (let index = 1000; index <= 9000; index++) {
         console.log(`ids that exist: ${assetIds.toString()}`);
         if(!noErr){
             break;
